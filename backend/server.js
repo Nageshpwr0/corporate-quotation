@@ -6,6 +6,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.json({
+    ok: true,
+    message: 'Corporate Quotation backend is running',
+    endpoints: ['/api/customers', '/api/quotations', '/api/health'],
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});
+
 // ── Customers ──────────────────────────────────────────────
 app.get('/api/customers', (req, res) => {
   db.all('SELECT * FROM customers ORDER BY customerName', (err, rows) => {
