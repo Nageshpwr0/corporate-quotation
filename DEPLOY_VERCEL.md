@@ -15,6 +15,12 @@ Deploy backend somewhere stable, then copy backend URL.
 Example backend URL:
 - `https://your-backend.example.com`
 
+Environment variables (recommended):
+- `CORS_ORIGIN` = `https://your-frontend.vercel.app` (comma-separated list allowed)
+- `SQLITE_DB_PATH` = `/data/quotations.db` (if your host mounts persistent disk at `/data`)
+
+If you use Docker, see `backend/Dockerfile`.
+
 Health check:
 - `https://your-backend.example.com/api/customers`
 

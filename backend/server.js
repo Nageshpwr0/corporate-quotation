@@ -3,7 +3,19 @@ const cors = require('cors');
 const db = require('./database');
 
 const app = express();
-app.use(cors());
+const corsRaw = String(process.env.CORS_ORIGIN || '').trim();
+const corsOrigins = corsRaw
+  ? corsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+  : ['*'];
+
+app.use(cors({
+  origin: corsOrigins.length === 1 && corsOrigins[0] === '*'
+    ? true
+    : corsOrigins,
+  credentials: corsOrigins.length === 1 && corsOrigins[0] === '*'
+    ? false
+    : true,
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {

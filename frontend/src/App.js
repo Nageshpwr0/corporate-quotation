@@ -45,7 +45,16 @@ function App() {
 
   const handleEdit = (quotation) => {
     setEditingQuotation(quotation);
-    setBrandTheme(quotation?.inputs?.brandCode === 'BDC' ? 'bhavesh' : 'radhe');
+    const brandCode = quotation?.inputs?.brandCode;
+    setBrandTheme(
+      brandCode === 'BDC'
+        ? 'bhavesh'
+        : brandCode === 'PH'
+          ? 'printHouse'
+          : brandCode === 'NP'
+            ? 'nexPrint'
+            : 'radhe'
+    );
     setView('form');
   };
 
@@ -66,7 +75,20 @@ function App() {
   };
 
   const handlePreviewPdf = (quotation) => {
-    openQuotationPdfPreview(quotation);
+    const matchedCustomer = customers.find((customer) => (
+      quotation?.inputs?.customerId
+        ? String(customer.id) === String(quotation.inputs.customerId)
+        : (customer.customerName || '') === (quotation?.inputs?.customerName || '')
+    ));
+    openQuotationPdfPreview({
+      ...quotation,
+      inputs: {
+        ...quotation.inputs,
+        customerAddress: quotation.inputs?.customerAddress || matchedCustomer?.address || '',
+        customerContactNo: quotation.inputs?.customerContactNo || matchedCustomer?.contactNo || '',
+        customerEmail: quotation.inputs?.customerEmail || matchedCustomer?.email || '',
+      },
+    });
   };
 
   const handleCustomerCreated = (customer) => {
@@ -105,6 +127,20 @@ function App() {
           style={{ marginRight: '10px', background: '#1d4ed8' }}
         >
           BHAVESH DIGITAL CENTRE
+        </button>
+        <button
+          className="save-btn-modern"
+          onClick={() => handleNewQuotation('printHouse')}
+          style={{ marginRight: '10px', background: '#be185d' }}
+        >
+          PRINT HOUSE
+        </button>
+        <button
+          className="save-btn-modern"
+          onClick={() => handleNewQuotation('nexPrint')}
+          style={{ marginRight: '10px', background: '#0f766e' }}
+        >
+          NEX PRINT
         </button>
         <button
           className={`btn-secondary ${view === 'customerMaster' ? 'active' : ''}`}

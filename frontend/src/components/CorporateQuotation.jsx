@@ -45,8 +45,12 @@ const calculateRowAmount = (row) => {
   return base + (base * gst / 100);
 };
 
+const getQuotationPrefix = (brandTheme) =>
+  brandTheme === 'bhavesh' ? 'BDC' : brandTheme === 'printHouse' ? 'PH' : brandTheme === 'nexPrint' ? 'NP' : 'RPS';
+
 function CorporateQuotation({ formData, onSaved, onOpenCustomerMaster, brandTheme = 'radhe', customers = [], quotations = [] }) {
-  const [quotationSeq, setQuotationSeq] = useState(() => nextCorporateQuotationSeq(quotations));
+  const quotationPrefix = getQuotationPrefix(brandTheme);
+  const [quotationSeq, setQuotationSeq] = useState(() => nextCorporateQuotationSeq(quotations, quotationPrefix));
   const [customerName, setCustomerName] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [kindAttention, setKindAttention] = useState('');
@@ -63,7 +67,7 @@ function CorporateQuotation({ formData, onSaved, onOpenCustomerMaster, brandThem
       setQuotationSeq(
         fromParsed !== null
           ? fromParsed
-          : nextCorporateQuotationSeq(quotations.filter((q) => q.id !== formData.id))
+          : nextCorporateQuotationSeq(quotations.filter((q) => q.id !== formData.id), quotationPrefix)
       );
       setCustomerName(formData.inputs?.customerName || '');
       const found = customers.find((c) => (
@@ -90,14 +94,14 @@ function CorporateQuotation({ formData, onSaved, onOpenCustomerMaster, brandThem
       setError('');
       return;
     }
-    setQuotationSeq(nextCorporateQuotationSeq(quotations));
+    setQuotationSeq(nextCorporateQuotationSeq(quotations, quotationPrefix));
     setCustomerName('');
     setSelectedCustomerId('');
     setKindAttention('');
     setTermsText(DEFAULT_TERMS_TEXT);
     setRows([createRow()]);
     setError('');
-  }, [customers, formData, isEditing, quotations]);
+  }, [customers, formData, isEditing, quotationPrefix, quotations]);
 
   useEffect(() => {
     if (!selectedCustomerId) return;
@@ -115,11 +119,14 @@ function CorporateQuotation({ formData, onSaved, onOpenCustomerMaster, brandThem
   const totalAmount = useMemo(() => tableRows.reduce((sum, row) => sum + row.amount, 0), [tableRows]);
   const totalQty = useMemo(() => tableRows.reduce((sum, row) => sum + toNumber(row.qty), 0), [tableRows]);
   const ratePerUnit = totalQty > 0 ? totalAmount / totalQty : 0;
-  const accentColor = brandTheme === 'bhavesh' ? '#1d4ed8' : '#be185d';
-  const accentSoft = brandTheme === 'bhavesh' ? '#dbeafe' : '#fce7f3';
-  const quotationPrefix = brandTheme === 'bhavesh' ? 'BDC' : 'RPS';
-  const tableHeaderBg = brandTheme === 'bhavesh' ? '#dbeafe' : '#1e293b';
-  const tableHeaderColor = brandTheme === 'bhavesh' ? '#1e3a8a' : '#f1f5f9';
+  const accentColor = brandTheme === 'bhavesh' ? '#1d4ed8' : brandTheme === 'nexPrint' ? '#0f766e' : '#be185d';
+  const accentSoft = brandTheme === 'bhavesh' ? '#dbeafe' : brandTheme === 'nexPrint' ? '#ccfbf1' : '#fce7f3';
+  const tableHeaderBg = brandTheme === 'bhavesh' ? '#dbeafe' : brandTheme === 'nexPrint' ? '#ccfbf1' : '#1e293b';
+  const tableHeaderColor = brandTheme === 'bhavesh' ? '#1e3a8a' : brandTheme === 'nexPrint' ? '#134e4a' : '#f1f5f9';
+  const selectedCustomer = useMemo(
+    () => customers.find((c) => String(c.id) === String(selectedCustomerId)),
+    [customers, selectedCustomerId]
+  );
   const sortedCustomers = useMemo(
     () => customers.slice().sort((a, b) => (a.customerName || '').localeCompare(b.customerName || '')),
     [customers]
@@ -192,6 +199,9 @@ function CorporateQuotation({ formData, onSaved, onOpenCustomerMaster, brandThem
         brandCode: quotationPrefix,
         customerId: selectedCustomerId ? Number(selectedCustomerId) : null,
         customerName: customerName.trim(),
+        customerAddress: String(selectedCustomer?.address || '').trim(),
+        customerContactNo: String(selectedCustomer?.contactNo || '').trim(),
+        customerEmail: String(selectedCustomer?.email || '').trim(),
         kindAttention: kindAttention.trim(),
         corporateQuotationNo: quotationSeq,
         qty: totalQty,
